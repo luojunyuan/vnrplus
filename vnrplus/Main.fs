@@ -1,5 +1,6 @@
 module Main
 
+open System.Diagnostics
 open System.IO
 open Avalonia.Controls
 open Avalonia.FuncUI
@@ -15,20 +16,25 @@ let view () =
                 Button.create [
                     Button.dock Dock.Bottom
                     Button.onClick (fun _ ->
+                        let fullPath = "/tmp/wine_out"
                         state.Set("waiting...")
-                        let fileWatcher = new FileSystemWatcher()
-                        fileWatcher.Path <- "/tmp/"
-                        fileWatcher.Filter <- "wine_out"
-                        fileWatcher.NotifyFilter <- NotifyFilters.LastWrite
-                        fileWatcher.EnableRaisingEvents <- true
-                        let handleFileChange _ (e: FileSystemEventArgs) =
-                            if e.ChangeType = WatcherChangeTypes.Changed then
-                                use fileStream = File.OpenRead e.FullPath
+                        let startInfo = new ProcessStartInfo()
+                        startInfo.FileName <- "fswatch"
+                        startInfo.Arguments <- fullPath
+                        startInfo.RedirectStandardOutput <- true
+                        startInfo.UseShellExecute <- false
+                        
+                        let fswatch = Process.Start startInfo
+                        fswatch.OutputDataReceived.Add(fun (e:DataReceivedEventArgs) ->
+                                use fileStream = File.OpenRead fullPath
                                 use streamReader = new StreamReader(fileStream)
                                 let content = streamReader.ReadLine()
-                                state.Set(content)
-
-                        fileWatcher.Changed.AddHandler(FileSystemEventHandler(handleFileChange)))
+                                let sentence = e.Data + content
+                                state.Set(state.Current + "\n" + sentence)
+                        )
+                        fswatch.BeginOutputReadLine()
+                        )
+                            
                     Button.content "Read begin"
                     Button.horizontalAlignment HorizontalAlignment.Stretch
                     Button.horizontalContentAlignment HorizontalAlignment.Center
@@ -42,7 +48,7 @@ let view () =
                 ]
                 TextBlock.create [
                     TextBlock.dock Dock.Top
-                    TextBlock.fontSize 28.0
+                    TextBlock.fontSize 12.0
                     TextBlock.verticalAlignment VerticalAlignment.Center
                     TextBlock.horizontalAlignment HorizontalAlignment.Center
                     TextBlock.text state.Current

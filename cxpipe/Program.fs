@@ -3,6 +3,7 @@ open System.IO
 open System.Threading
 
 // This program should only compiled to win-x64 **AOT** and run by wine.
+// Ensure the game has started before running
 // ep. `wine cxpipe.exe filename`.
 printfn "start"
 
@@ -33,4 +34,4 @@ TextHostExport.InjectProcess(uint proc.Id) |> ignore
 
 
 System.Console.ReadKey() |> ignore
-printfn "stop" // only exit with game process
+printfn "stop" // only exit with game process not vnrplus
