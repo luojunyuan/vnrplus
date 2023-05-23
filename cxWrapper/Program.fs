@@ -1,6 +1,6 @@
 ﻿open System.IO
 
-// This program should only compiled to win-x64 AOT and run by wine.
+// This program should only compiled to win-x64 **AOT** and run by wine.
 // ep. `wine cxWrapper.exe pid`.
 printfn "start"
 
@@ -17,9 +17,7 @@ let onCreateThread (param1: int64) (param2: uint) (param3: int64) (param4: int64
 let onRemoveThread (threadId: int64) : unit = ()
 let onOutputText (param1: int64) (text: string) (param3: uint) =
     printfn $"{text}"
-    async {
-        do! writer.WriteAsync(text) |> Async.AwaitTask
-    } |> Async.RunSynchronously
+    writer.WriteLine(text)
     
 let proc = System.Diagnostics.Process.GetProcessesByName("ぜったい絶頂☆性器の大発明!!　─処女を狙う学園道具多発エロ─")[0]
 //let proc = System.Diagnostics.Process.GetProcessesByName("ぜったい征服☆学園結社パニャニャンダー!!")[0]
@@ -30,4 +28,4 @@ TextHostExport.InjectProcess(uint proc.Id) |> ignore
 
 
 System.Console.ReadKey() |> ignore
-printfn "over" // exit with game process
+printfn "stop" // exit with game process
