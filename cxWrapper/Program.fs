@@ -1,14 +1,15 @@
 ﻿open System.IO
 
 // This program should only compiled to win-x64 AOT and run by wine.
-// ep. `wine cxWrapper.exe pid`
+// ep. `wine cxWrapper.exe pid`.
 printfn "start"
 
 let writer =
     try
         File.CreateText "/tmp/wine_out" // automatic map to 'Z:\tmp\wine_out' in wine
     with
-        | :? IOException -> failwith "Pipe is occupead by another process"; 
+        | :? IOException -> failwith "Pipe is occupied by another process"
+writer.AutoFlush <- true
     
 let onConnect (processId: uint) : unit = ()
 let onDisconnect (processId: uint) : unit = ()
@@ -27,5 +28,6 @@ printfn $"{proc.Id}"
 TextHostExport.TextHostInit(onConnect, onDisconnect, onCreateThread, onRemoveThread, onOutputText) |> ignore
 TextHostExport.InjectProcess(uint proc.Id) |> ignore
 
+
+System.Console.ReadKey() |> ignore
 printfn "over" // exit with game process
-System.Console.ReadKey() |> ignore;
