@@ -1,6 +1,6 @@
 ﻿open System.IO
 
-// This program should only compiled to win-x64 and run by wine
+// This program should only compiled to win-x64 AOT and run by wine.
 // ep. `wine cxWrapper.exe pid`
 printfn "start"
 
