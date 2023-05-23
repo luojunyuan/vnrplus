@@ -5,6 +5,7 @@
         <TargetFramework>net8.0</TargetFramework>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <PublishAot>true</PublishAot>
+        <RootNamespace>cxWrapper</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

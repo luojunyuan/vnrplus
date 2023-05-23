@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "vnrplus", "vnrplus\vnrplus.fsproj", "{77893901-260F-47DB-82EA-9AC707FDE075}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "cxWrapper", "cxWrapper\cxWrapper.fsproj", "{8163A1EE-73BE-4B7F-8395-3D97E8406D6A}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "cxpipe", "cxpipe\cxpipe.fsproj", "{8163A1EE-73BE-4B7F-8395-3D97E8406D6A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
