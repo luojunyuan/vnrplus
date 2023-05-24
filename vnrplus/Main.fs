@@ -29,7 +29,7 @@ let view () =
                                 use fileStream = File.OpenRead fullPath
                                 use streamReader = new StreamReader(fileStream)
                                 let content = streamReader.ReadLine()
-                                let sentence = e.Data + content
+                                let sentence = e.Data + " " + content
                                 state.Set(state.Current + "\n" + sentence)
                         )
                         fswatch.BeginOutputReadLine()
