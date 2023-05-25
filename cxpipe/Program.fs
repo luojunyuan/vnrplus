@@ -3,54 +3,47 @@ open System.Diagnostics
 open System.IO
 open System.Threading
 
-// This program should only compiled to win-x64 **AOT** and run by wine.
+// This program can be only target to net fx and run by wine.
+// net8: 1.FileSystemWatcher do not work. 2.TextHostExport dll import only work on **AOT**
 // Ensure the game has started before running
-// ep. `wine cxpipe.exe filename`.
+let pipeOutFile = @"z:\tmp\wine_out"
+
 printfn "start"
 
+// 'notepad'
 // 'ぜったい征服☆学園結社パニャニャンダー!!'
 // 'ぜったい絶頂☆性器の大発明!!　─処女を狙う学園道具多発エロ─'
-let filename = match System.Environment.GetCommandLineArgs () |> Array.skip 1 with
+let filename = match Environment.GetCommandLineArgs () |> Array.skip 1 with
                | [| arg |] -> arg
                | _ -> failwith "Usage: wine cxpipe.exe filename"
 
 let writer =
     try
-        File.CreateText "/tmp/wine_out" // automatic map to 'Z:\tmp\wine_out' in wine
+        File.CreateText pipeOutFile
     with
-        | :? IOException -> failwith "Pipe is occupied by another process"
+        | :? IOException as e ->
+            // Pipe is occupied by another process
+            match Process.GetProcessesByName("cxpipe") with
+            | [||] -> failwith e.Message
+            | pipeExist -> for pipe in pipeExist do
+                               if (pipe.Id <> Process.GetCurrentProcess().Id) then pipe.Kill()
+                           File.CreateText pipeOutFile
 writer.AutoFlush <- true
 
-// let reader = new FileSystemWatcher()
-// reader.Path <- "/tmp/"
-// reader.Filter <- "wine_in"
-// // reader.NotifyFilter <- NotifyFilters.LastWrite
-// reader.EnableRaisingEvents <- true
-// let fileChangeCallback  (e: FileSystemEventArgs) =
-//     printfn $"{e.ChangeType}"
-//     // if e.ChangeType = WatcherChangeTypes.Changed then
-//     // use fileStream = File.OpenRead e.FullPath
-//     // use streamReader = new StreamReader(fileStream)
-//     // let content = streamReader.ReadLine()
-//     // printfn $"{e.ChangeType} {content}"
-//     
-// reader.Changed.Add(fileChangeCallback)
-// reader.Renamed.Add(fileChangeCallback)
-// reader.Created.Add(fileChangeCallback)
-// reader.Deleted.Add(fileChangeCallback)
-
-let task = async {
-    while true do
-        System.Threading.Thread.Sleep(2000)
-        // use fileStream = File.OpenRead "/tmp/wine_in"
-        // use streamReader = new StreamReader(fileStream)
-        // let content = streamReader.ReadLine()
-        // printfn $"{content}"
-        writer.BaseStream.Position <- 0 
-        writer.WriteLine($"{Thread.CurrentThread.ManagedThreadId} {DateTime.Now}")
-}
-
-Async.Start(task)
+let reader = new FileSystemWatcher()
+reader.Path <- @"z:\tmp\"
+reader.Filter <- "wine_in"
+reader.EnableRaisingEvents <- true
+let fileChangeCallback  (e: FileSystemEventArgs) =
+    use fileStream = File.OpenRead e.Name
+    use streamReader = new StreamReader(fileStream)
+    let command = streamReader.ReadLine()
+    printfn $"{e.ChangeType} {command}"
+    
+reader.Changed.Add(fileChangeCallback)
+reader.Renamed.Add(fileChangeCallback)
+reader.Created.Add(fileChangeCallback)
+reader.Deleted.Add(fileChangeCallback)
 
 let onConnect (processId: uint) : unit = ()
 let onDisconnect (processId: uint) : unit = ()
@@ -60,14 +53,15 @@ let onOutputText (threadId: int64) (text: string) (length: uint) =
     writer.BaseStream.Position <- 0 
     writer.WriteLine($"{Thread.CurrentThread.ManagedThreadId} {threadId} {length} {text}")
     
-//TextHostExport.TextHostInit(onConnect, onDisconnect, onCreateThread, onRemoveThread, onOutputText) |> ignore
+TextHostExport.TextHostInit(onConnect, onDisconnect, onCreateThread, onRemoveThread, onOutputText) |> ignore
+printfn "pass TextHostInit"
 
 let processes = match Process.GetProcessesByName(filename) with
                 | [||] -> failwith $"no process {filename} found"
-                | atom -> atom
+                | arr -> arr
 
 for proc in processes do
-    () //TextHostExport.InjectProcess(uint proc.Id) |> ignore
+    TextHostExport.InjectProcess(uint proc.Id) |> ignore
 
 processes[0].WaitForExit()
 printfn "stop" // only exit with game process not vnrplus
