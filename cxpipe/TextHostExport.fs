@@ -6,28 +6,31 @@ open System.Runtime.InteropServices
 let TextHostRelativePath = "libs/texthost.dll"
 
 type ProcessCallback = delegate of uint -> unit
-type OnCreateThread = delegate of int64 * uint * int64 * int64 * int64 * string * string -> unit
+type OnCreateThread = delegate of int64 * uint * int64 * int64 * int64 * [<MarshalAs(UnmanagedType.LPWStr)>] name : string * [<MarshalAs(UnmanagedType.LPWStr)>] hcode : string -> unit
 type OnRemoveThread = delegate of int64 -> unit
 type OnOutputText = delegate of int64 * [<MarshalAs(UnmanagedType.LPWStr)>] text : string * uint -> unit
 
 
 [<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
-extern int TextHostInit(ProcessCallback onConnect, ProcessCallback onDisconnect, OnCreateThread onCreateThread, OnRemoveThread onRemoveThread, OnOutputText onOutputText)
+extern bool TextHostInit(ProcessCallback onConnect, ProcessCallback onDisconnect, OnCreateThread onCreateThread, OnRemoveThread onRemoveThread, OnOutputText onOutputText)
 
 [<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
-extern int InsertHook(uint processId, string hookCode)
+extern void InsertHook(uint processId, string hookCode)
 
 [<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
-extern int RemoveHook(uint processId, int64 address);
+extern void RemoveHook(uint processId, int64 address);
 
 [<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
-extern int InjectProcess(uint processId);
+extern void InjectProcess(uint processId);
 
 [<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
-extern int DetachProcess(uint processId);
+extern void DetachProcess(uint processId);
 
 [<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
-extern int SearchForText(uint processId, string text, int codepage);
+extern void SearchForText(uint processId, string text, int codepage);
 
 [<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
-extern int AddClipboardThread(nativeint handle)
+extern void AddClipboardThread(nativeint handle)
+
+[<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
+extern void UpdateFlushTimeout(uint timeout)
