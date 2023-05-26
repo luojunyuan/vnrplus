@@ -1,14 +1,12 @@
 ﻿open System
 open System.Diagnostics
 open System.IO
-open System.Threading
+open Common
 
 // This program can be only target to net fx and run by wine.
 // cxpipe is predict to be a win-x64 program for Mac. cxpipe -> texthost.dll (win-x64)
 // net8: 1.FileSystemWatcher do not work. 2.TextHostExport dll import only work on **AOT**
 // Ensure the game has started before running
-let pipeOutFile = @"z:\tmp\wine_out"
-
 printfn "start"
 
 // 'notepad'
@@ -35,12 +33,13 @@ let reader = new FileSystemWatcher()
 reader.Path <- @"z:\tmp\"
 reader.Filter <- "wine_in"
 reader.EnableRaisingEvents <- true
-let fileChangeCallback  (e: FileSystemEventArgs) =
-    use fileStream = File.OpenRead e.Name
-    use streamReader = new StreamReader(fileStream)
-    let command = streamReader.ReadLine()
-    Trrricksters.Execute command
-    printfn $"{e.ChangeType} {command}"
+let fileChangeCallback (e: FileSystemEventArgs) =
+    // ignore the potential disposal issue
+    e.Name
+    |> File.OpenRead
+    |> fun s -> new StreamReader(s)
+    |> fun r -> r.ReadLine()
+    |> Trrricksters.Execute
     
 reader.Changed.Add(fileChangeCallback)
 reader.Renamed.Add(fileChangeCallback)
@@ -52,9 +51,9 @@ let onDisconnect (processId: uint) : unit = ()
 let onRemoveThread (threadId: int64) : unit = ()
 let onCreateThread = Trrricksters.onCreateThread
 let onOutputText (threadId: int64) (text: string) (length: uint) = Trrricksters.onOutputText threadId text length writer
-    
 TextHostExport.TextHostInit(onConnect, onDisconnect, onCreateThread, onRemoveThread, onOutputText) |> ignore
 TextHostExport.UpdateFlushTimeout (uint 0)
+// TextHostExport.UpdateFlushTimeout (true, uint 50)
 let processes = match Process.GetProcessesByName(filename) with
                 | [||] -> failwith $"no process {filename} found"
                 | arr -> arr

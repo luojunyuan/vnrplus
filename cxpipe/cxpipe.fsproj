@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Common.fs" />
         <Compile Include="TextHostExport.fs" />
         <Compile Include="Trrricksters.fs" />
         <Compile Include="Program.fs" />
