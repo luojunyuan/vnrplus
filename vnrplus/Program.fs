@@ -37,8 +37,8 @@ type App() =
             VnrpTrayIcon.TrayIcon mainWindow desktopLifetime
             
             desktopLifetime.ShutdownMode <- ShutdownMode.OnExplicitShutdown
-            match desktopLifetime.Args |> Array.toList |> List.tryHead with
-            | Some path -> printfn $"{path}"
+            match desktopLifetime.Args |> Array.tryHead with
+            | Some path -> desktopLifetime.MainWindow <- Text.TextWindow path
             | _ -> desktopLifetime.MainWindow <- mainWindow
         | _ -> ()
 

@@ -7,11 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Common.fs" />
-        <Compile Include="TextHostExport.fs" />
-        <Compile Include="Trrricksters.fs" />
-        <Compile Include="Program.fs" />
-        <Content Include="cxenv.sh" />
+        <Compile Include="Common.fs"/>
+        <Compile Include="TextHostExport.fs"/>
+        <Compile Include="Trrricksters.fs"/>
+        <Compile Include="Program.fs"/>
+        <Content Include="cxenv.sh"/>
     </ItemGroup>
 
 </Project>

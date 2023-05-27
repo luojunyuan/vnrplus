@@ -10,16 +10,18 @@
         <Content Include="Assets\TrayIcon.ico">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Compile Include="TrayIcon.fs" />
-        <Compile Include="Common.fs" />
-        <Compile Include="Main.fs" />
-        <Compile Include="Program.fs" />
+        <Compile Include="TrayIcon.fs"/>
+        <Compile Include="Common.fs"/>
+        <Compile Include="Main.fs"/>
+        <Compile Include="Text.fs"/>
+        <Compile Include="Program.fs"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview8" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview8" />
-        <PackageReference Include="Avalonia.FuncUI.Elmish" Version="0.6.0-preview9.1" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview8"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview8"/>
+        <PackageReference Include="Avalonia.FuncUI.Elmish" Version="0.6.0-preview9.1"/>
+        <PackageReference Include="FSharp.Control.Reactive" Version="5.0.5"/>
     </ItemGroup>
 
 </Project>
