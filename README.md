@@ -18,4 +18,5 @@ dotnet publish -o vnrplus
 cp -r bin/Debug/net8.0/UniDic ~/Downloads/vnrplus
 # tmp_start.sh in vnrplus -> depend on wine, game and cxpipe
 # fswatch
+# cxpipe libs (consider separate folder)
 ```
