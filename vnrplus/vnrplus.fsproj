@@ -4,24 +4,33 @@
         <OutputType>WinExe</OutputType> <!-- Still show console https://github.com/AvaloniaUI/Avalonia/issues/1705#issuecomment-1468621736 -->
         <TargetFramework>net8.0</TargetFramework>
         <PublishAot>true</PublishAot>
+        <MeCabUseDefaultDictionary>false</MeCabUseDefaultDictionary>
     </PropertyGroup>
 
     <ItemGroup>
         <Content Include="Assets\TrayIcon.ico">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Compile Include="TrayIcon.fs"/>
-        <Compile Include="Common.fs"/>
-        <Compile Include="Main.fs"/>
-        <Compile Include="Text.fs"/>
-        <Compile Include="Program.fs"/>
+        <Compile Include="Common.fs" />
+        <Compile Include="MeCab.fs" />
+        <Compile Include="Ruby.fs" />
+        <Compile Include="TrayIcon.fs" />
+        <Compile Include="Text.fs" />
+        <Compile Include="Main.fs" />
+        <Compile Include="Program.fs" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview8"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview8"/>
-        <PackageReference Include="Avalonia.FuncUI.Elmish" Version="0.6.0-preview9.1"/>
-        <PackageReference Include="FSharp.Control.Reactive" Version="5.0.5"/>
+        <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview8" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview8" />
+        <PackageReference Include="Avalonia.FuncUI.Elmish" Version="0.6.0-preview9.1" />
+        <PackageReference Include="FSharp.Control.Reactive" Version="5.0.5" />
+        <PackageReference Include="MeCab.DotNet" Version="0.0.40" />
+        <PackageReference Include="WanaKana-net" Version="1.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Avalonia.ReactiveUI\Avalonia.ReactiveUI.csproj" />
     </ItemGroup>
 
 </Project>

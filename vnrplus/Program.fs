@@ -3,6 +3,7 @@
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
+open Avalonia.Media
 open Avalonia.Themes.Fluent
 open Avalonia.FuncUI.Hosts
 open Elmish
@@ -14,6 +15,7 @@ type MainWindow() as this =
     do
         base.Title <- "Visual Novel Reader Plus"
         base.Width <- 400
+        base.ExtendClientAreaToDecorationsHint <- true
         
         this.Closing.Add(fun e ->
             e.Cancel <- true
@@ -49,3 +51,4 @@ let main(args: string[]) =
         .UsePlatformDetect()
         .UseSkia()
         .StartWithClassicDesktopLifetime(args)
+        

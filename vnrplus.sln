@@ -4,6 +4,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "vnrplus", "vnrplus\vnrplus.
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "cxpipe", "cxpipe\cxpipe.fsproj", "{8163A1EE-73BE-4B7F-8395-3D97E8406D6A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.ReactiveUI", "Avalonia.ReactiveUI\Avalonia.ReactiveUI.csproj", "{D151B658-CAF2-4E7E-9D57-1AD1A74CC3BF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{8163A1EE-73BE-4B7F-8395-3D97E8406D6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8163A1EE-73BE-4B7F-8395-3D97E8406D6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8163A1EE-73BE-4B7F-8395-3D97E8406D6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D151B658-CAF2-4E7E-9D57-1AD1A74CC3BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D151B658-CAF2-4E7E-9D57-1AD1A74CC3BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D151B658-CAF2-4E7E-9D57-1AD1A74CC3BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D151B658-CAF2-4E7E-9D57-1AD1A74CC3BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
