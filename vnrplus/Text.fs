@@ -1,6 +1,7 @@
 module Text
 
 open Avalonia
+open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.Hosts
 open Avalonia.FuncUI.Library
 open Avalonia.Platform
@@ -47,9 +48,10 @@ let mutable tmp = false
 let lineBreaker = Subject.broadcast
 let LineBreakerSubscript (dispatch: Msg -> unit) =
     lineBreaker
-    |> Observable.throttle (TimeSpan.FromMilliseconds 400)
+    |> Observable.throttle (TimeSpan.FromMilliseconds 50)
     |> Observable.observeOn Avalonia.ReactiveUI.AvaloniaScheduler.Instance
     |> Observable.subscribe (fun () ->
+                            // currentText.length
                             // Start mecab text
                             let mecabWords = MeCab.generateWords currentText
                                              |> Seq.toList
@@ -157,6 +159,12 @@ let view (state: State) (dispatch: Msg -> unit) =
                     ]
                 ]
             ]
+            
+            
+            let blur = DropShadowEffect()
+            blur.Color <- Colors.Black
+            blur.Opacity <- 0.5
+            blur.BlurRadius <- 4
             TextBlock.create [
                 TextBlock.dock Dock.Top
                 TextBlock.fontSize 28.0
@@ -164,10 +172,12 @@ let view (state: State) (dispatch: Msg -> unit) =
                 TextBlock.horizontalAlignment HorizontalAlignment.Left
                 TextBlock.text state.text
                 TextBlock.textWrapping TextWrapping.Wrap
-                TextBlock.padding (0,14,0,0) //  equal ruby size
+                TextBlock.padding (0,13,0,0) //  should equal ruby size
                 TextBlock.isVisible (not state.kanaEnable)
-                TextBlock.lineHeight 42
+                TextBlock.lineHeight 41 // also effect by ruby size
+                AttrBuilder<TextBlock>.CreateProperty<IEffect>(TextBlock.EffectProperty, blur, ValueNone)
             ]
+            
             WrapPanel.create [
                 WrapPanel.dock Dock.Top
                 WrapPanel.horizontalAlignment HorizontalAlignment.Left
@@ -176,7 +186,8 @@ let view (state: State) (dispatch: Msg -> unit) =
                 WrapPanel.children [
                     for moji in state.mecabWords do
                         Ruby.Word moji.Kana moji.Word
-                ] 
+                ]
+                AttrBuilder<WrapPanel>.CreateProperty<IEffect>(TextBlock.EffectProperty, blur, ValueNone)
             ]
         ]
     ]
@@ -193,6 +204,9 @@ type TextWindow(path: string) as this =
         base.ExtendClientAreaToDecorationsHint <- true
         base.ExtendClientAreaChromeHints <- ExtendClientAreaChromeHints.NoChrome
         base.Padding <- Thickness(0,4,0,0)
+        // base.TransparencyBackgroundFallback <- Brushes.Transparent
+        base.Background <- SolidColorBrush(Colors.Black, 0.4)
+        base.TransparencyLevelHint <- WindowTransparencyLevel.Transparent
 
         this.PointerPressed.Add(fun e ->
             match e.GetCurrentPoint(null).Properties.IsLeftButtonPressed with
