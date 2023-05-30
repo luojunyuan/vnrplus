@@ -54,3 +54,10 @@ Taskbar Menu
 * Subtitles manager
 
 Community
+
+Elmish
+MVU
+fsharp
+Avalonia
+
+https://medium.com/@MangelMaxime/my-tips-for-working-with-elmish-ab8d193d52fd

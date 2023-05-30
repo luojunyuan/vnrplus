@@ -10,6 +10,7 @@ type App() =
     inherit Application()
 
     override this.Initialize() =
+        this.Name <- "Visual Novel Reader Plus"
         this.Styles.Add(FluentTheme())
         this.RequestedThemeVariant <- Styling.ThemeVariant.Default
 
