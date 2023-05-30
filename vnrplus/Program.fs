@@ -3,27 +3,7 @@
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
-open Avalonia.Media
 open Avalonia.Themes.Fluent
-open Avalonia.FuncUI.Hosts
-open Elmish
-open Avalonia.FuncUI.Elmish
-open Avalonia.FuncUI
-
-type MainWindow() as this =
-    inherit HostWindow()
-    do
-        base.Title <- "Visual Novel Reader Plus"
-        base.Width <- 400
-        base.ExtendClientAreaToDecorationsHint <- true
-        
-        this.Closing.Add(fun e ->
-            e.Cancel <- true
-            this.Hide())
-        
-        Elmish.Program.mkSimple Main.init Main.update Main.view
-        |> Program.withHost this
-        |> Program.run
 
 type App() =
     inherit Application()
@@ -35,13 +15,14 @@ type App() =
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
         | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
-            let mainWindow = MainWindow()
+            let mainWindow = Main.MainWindow()
             VnrpTrayIcon.TrayIcon mainWindow desktopLifetime
             
             desktopLifetime.ShutdownMode <- ShutdownMode.OnExplicitShutdown
-            match desktopLifetime.Args |> Array.tryHead with
-            | Some path -> desktopLifetime.MainWindow <- Text.TextWindow path
-            | _ -> desktopLifetime.MainWindow <- mainWindow
+            desktopLifetime.MainWindow <-
+                match desktopLifetime.Args |> Array.tryHead with
+                | Some path -> Text.TextWindow path :> Window
+                | _ -> mainWindow
         | _ -> ()
 
 [<EntryPoint>]
@@ -51,4 +32,3 @@ let main(args: string[]) =
         .UsePlatformDetect()
         .UseSkia()
         .StartWithClassicDesktopLifetime(args)
-        

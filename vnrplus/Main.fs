@@ -5,17 +5,15 @@ open System.Diagnostics
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.Hosts
 open Avalonia.Threading
-
-// Adjust flush time 50 - 400
-// Skip too long text may not fit for immediate fresh
+open Elmish
+open Avalonia.FuncUI.Elmish
+open Avalonia.FuncUI
 
 type State =
     { text : string }
-
-let init () =
-    { text = "nothing new here" }
-
+    
 type Msg =
 | Start
 
@@ -49,7 +47,25 @@ let view (state: State) (dispatch: Msg -> unit)  =
         WrapPanel.children [
             Button.create [
                 Button.content "Start"
-                Button.onClick (fun _ -> dispatch Start)
+                Button.onClick (fun _ -> Start |> dispatch)
             ]
         ]
     ]
+
+let init () =
+    { text = "nothing new here" }
+
+type MainWindow() as this =
+    inherit HostWindow()
+    do
+        base.Title <- "Visual Novel Reader Plus"
+        base.Width <- 400
+        base.ExtendClientAreaToDecorationsHint <- true
+        
+        this.Closing.Add(fun e ->
+            e.Cancel <- true
+            this.Hide())
+        
+        Elmish.Program.mkSimple init update view
+        |> Program.withHost this
+        |> Program.run

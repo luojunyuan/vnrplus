@@ -18,6 +18,7 @@ open Avalonia.Threading
 open Common
 open FSharp.Control.Reactive
 open MeCab
+open Microsoft.Win32
 
 let pipeFullPath = "/tmp/wine_out"
 
@@ -29,6 +30,7 @@ type State =
       mecabWords: MeCab.MeCabWord list }
 
 let init (path: string) =
+    printfn "init"
     { text = path
       threadId = 0
       listenButtonEnabled = true
@@ -51,13 +53,13 @@ let LineBreakerSubscript (dispatch: Msg -> unit) =
     |> Observable.throttle (TimeSpan.FromMilliseconds 50)
     |> Observable.observeOn Avalonia.ReactiveUI.AvaloniaScheduler.Instance
     |> Observable.subscribe (fun () ->
-                            // currentText.length
-                            // Start mecab text
-                            let mecabWords = MeCab.generateWords currentText
-                                             |> Seq.toList
-                            dispatch (UpdateText mecabWords)
-                            dispatch (ChangeTextBlock true)
-                            tmp <- true)// Should dispatch with message
+        // currentText.length
+        // Start mecab text
+        let mecabWords = MeCab.generateWords currentText
+                         |> Seq.toList
+        dispatch (UpdateText mecabWords)
+        dispatch (ChangeTextBlock true)
+        tmp <- true)// Should dispatch with message
     |> ignore
 
 let StartListenPipe (dispatch: Msg->unit) =
@@ -192,9 +194,10 @@ let view (state: State) (dispatch: Msg -> unit) =
         ]
     ]
 
+let setBackgroundTheme opacity theme = if theme = Styling.ThemeVariant.Light then SolidColorBrush(Colors.Black, opacity) else SolidColorBrush(Colors.White, opacity)
+
 type TextWindow(path: string) as this =
     inherit HostWindow()
-    
     do
         base.Height <- 200
         base.Width <- 600
@@ -204,10 +207,11 @@ type TextWindow(path: string) as this =
         base.ExtendClientAreaToDecorationsHint <- true
         base.ExtendClientAreaChromeHints <- ExtendClientAreaChromeHints.NoChrome
         base.Padding <- Thickness(0,4,0,0)
-        // base.TransparencyBackgroundFallback <- Brushes.Transparent
-        base.Background <- SolidColorBrush(Colors.Black, 0.4)
+        base.Background <- setBackgroundTheme 0.4 Styling.ThemeVariant.Default
         base.TransparencyLevelHint <- WindowTransparencyLevel.Transparent
-
+#if WINDOWS
+        SystemEvents.UserPreferenceChanged.Add(fun e -> printfn $"{e.Category}")
+#endif
         this.PointerPressed.Add(fun e ->
             match e.GetCurrentPoint(null).Properties.IsLeftButtonPressed with
             | true -> this.BeginMoveDrag(e)
