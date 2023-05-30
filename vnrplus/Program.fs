@@ -9,16 +9,17 @@ type App() =
     inherit Application()
 
     override this.Initialize() =
-        this.Styles.Add (FluentTheme())
+        this.Styles.Add(FluentTheme())
         this.RequestedThemeVariant <- Styling.ThemeVariant.Default
 
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
         | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
             let mainWindow = Main.MainWindow()
-            VnrpTrayIcon.TrayIcon mainWindow desktopLifetime
-            
+            VnrpTrayIcon.startTrayIcon mainWindow desktopLifetime
+
             desktopLifetime.ShutdownMode <- ShutdownMode.OnExplicitShutdown
+
             desktopLifetime.MainWindow <-
                 match desktopLifetime.Args |> Array.tryHead with
                 | Some path -> Text.TextWindow path :> Window
@@ -26,7 +27,7 @@ type App() =
         | _ -> ()
 
 [<EntryPoint>]
-let main(args: string[]) =
+let main (args: string[]) =
     AppBuilder
         .Configure<App>()
         .UsePlatformDetect()

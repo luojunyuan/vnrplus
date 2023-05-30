@@ -13,27 +13,31 @@ printfn "start"
 // 'ぜったい征服☆学園結社パニャニャンダー!!'
 // 'ぜったい絶頂☆性器の大発明!!　─処女を狙う学園道具多発エロ─'
 let filename =
-    match Environment.GetCommandLineArgs () |> Array.skip 1 with
+    match Environment.GetCommandLineArgs() |> Array.skip 1 with
     | [| arg |] -> arg
     | _ -> failwith "Usage: wine cxpipe.exe filename"
 
 let writer =
     try
         File.CreateText pipeOutFile
-    with
-    | :? IOException as e ->
+    with :? IOException as e ->
         // Pipe is occupied by another process
         match Process.GetProcessesByName("cxpipe") with
         | [||] -> failwith e.Message
-        | pipeExist -> for pipe in pipeExist do
-                           if (pipe.Id <> Process.GetCurrentProcess().Id) then pipe.Kill()
-                       File.CreateText pipeOutFile
+        | pipeExist ->
+            for pipe in pipeExist do
+                if (pipe.Id <> Process.GetCurrentProcess().Id) then
+                    pipe.Kill()
+
+            File.CreateText pipeOutFile
+
 writer.AutoFlush <- true
 
 let reader = new FileSystemWatcher()
 reader.Path <- @"z:\tmp\"
 reader.Filter <- "wine_in"
 reader.EnableRaisingEvents <- true
+
 let fileChangeCallback (e: FileSystemEventArgs) =
     // ignore the potential disposal issue
     e.Name
@@ -41,7 +45,7 @@ let fileChangeCallback (e: FileSystemEventArgs) =
     |> fun s -> new StreamReader(s)
     |> fun r -> r.ReadLine()
     |> Trrricksters.Execute
-    
+
 reader.Changed.Add(fileChangeCallback)
 reader.Renamed.Add(fileChangeCallback)
 reader.Created.Add(fileChangeCallback)
@@ -51,9 +55,15 @@ let onConnect (processId: uint) : unit = ()
 let onDisconnect (processId: uint) : unit = ()
 let onRemoveThread (threadId: int64) : unit = ()
 let onCreateThread = Trrricksters.onCreateThread
-let onOutputText (threadId: int64) (text: string) (length: uint) = Trrricksters.onOutputText threadId text length writer
-TextHostExport.TextHostInit(onConnect, onDisconnect, onCreateThread, onRemoveThread, onOutputText) |> ignore
-TextHostExport.UpdateFlushTimeout (uint 0)
+
+let onOutputText (threadId: int64) (text: string) (length: uint) =
+    Trrricksters.onOutputText threadId text length writer
+
+TextHostExport.TextHostInit(onConnect, onDisconnect, onCreateThread, onRemoveThread, onOutputText)
+|> ignore
+
+TextHostExport.UpdateFlushTimeout(uint 0)
+
 let processes =
     match Process.GetProcessesByName(filename) with
     | [||] -> failwith $"no process {filename} found"

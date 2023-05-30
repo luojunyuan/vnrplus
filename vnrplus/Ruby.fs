@@ -6,19 +6,19 @@ open Avalonia.Layout
 open Avalonia.Media
 
 let Word ruby text =
-    StackPanel.create [
-        StackPanel.children [
-            TextBlock.create [
-                TextBlock.text ruby
-                TextBlock.fontSize 13 // -1 あまり意味ないと思うが。。
-                TextBlock.horizontalAlignment HorizontalAlignment.Center
-                TextBlock.clipToBounds false]
-            Border.create [
-                Border.background (ImageBrush())
-                Border.child (TextBlock.create [
-                    TextBlock.text text
-                    TextBlock.fontSize 28
-                    TextBlock.horizontalAlignment HorizontalAlignment.Center
-                    TextBlock.clipToBounds false])]
-        ]
-    ]
+    StackPanel.create
+        [ StackPanel.children
+              [ TextBlock.create
+                    [ TextBlock.text ruby
+                      TextBlock.fontSize 13 // -1 あまり意味ないと思うが。。
+                      TextBlock.horizontalAlignment HorizontalAlignment.Center
+                      TextBlock.clipToBounds false ]
+                Border.create
+                    [ Border.background (ImageBrush())
+                      Border.child (
+                          TextBlock.create
+                              [ TextBlock.text text
+                                TextBlock.fontSize 28
+                                TextBlock.horizontalAlignment HorizontalAlignment.Center
+                                TextBlock.clipToBounds false ]
+                      ) ] ] ]
