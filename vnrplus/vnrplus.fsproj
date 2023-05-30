@@ -11,6 +11,7 @@
         <Content Include="Assets\TrayIcon.ico">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Compile Include="Types.fs" />
         <Compile Include="Common.fs" />
         <Compile Include="Tool.fs" />
         <Compile Include="MeCab.fs" />
@@ -28,12 +29,10 @@
         <PackageReference Include="FSharp.Control.Reactive" Version="5.0.5" />
         <PackageReference Include="MeCab.DotNet" Version="0.0.40" />
         <PackageReference Include="WanaKana-net" Version="1.0.0" />
-        <!-- Explicitly upgrade dependency package to latest -->
-        <PackageReference Include="System.Reactive" Version="6.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Avalonia.ReactiveUI\Avalonia.ReactiveUI.csproj" />
+        <ProjectReference Include="..\Avalonia.ReactiveUI\Avalonia.ReactiveUI.csproj" />
     </ItemGroup>
 
 </Project>

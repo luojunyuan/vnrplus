@@ -1,9 +1,6 @@
 module Main
 
-open System
-open System.Diagnostics
 open Avalonia.Controls
-open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Hosts
 open Avalonia.Threading
@@ -11,29 +8,42 @@ open Elmish
 open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI
 
-type State = { isGameRunning: bool }
+type State =
+    { isGameRunning: bool
+      inUseBottle: string option }
 
-type Msg = | Start
+type Msg =
+    | Start
+    | Stop
+    | Test
 
-let update (msg: Msg) (state: State) : State =
+let update (msg: Msg) (state: State) : State * Cmd<Msg> =
     match msg with
     | Start ->
-        let cxpipeWine = Tool.startCxpipe
-        // Side effect
-        // cxpipeWine.Exited.Add(fun _ -> true |> GameExited)
-        // let textWindow = Text.TextWindow "stasssqssjhbuhbhcfcvughvhuftcutfcuhvhivihrt"
-        // cxpipeWine.Exited.Add(fun _ -> Dispatcher.UIThread.Invoke(fun _ -> textWindow.Close()))
-        // // TODO close fswatch with textWindow
-        // textWindow.Show()
-        Common.retrieveMainWindow.Hide()
-        { state with isGameRunning = true }
+        let game = Tool.startGameWithCxpipe (string state.inUseBottle) "path/to/game"
+        let fswatch = Tool.startFswatch()
+        let whenGameExit dispatch =
+            game.Exited.Add(fun _ ->
+                (fun _ -> Stop |> dispatch) |> Dispatcher.UIThread.Invoke
+                fswatch.Kill()
+                printfn "GameExited")
+        Common.retrieveMainWindow().Hide()
+        { state with isGameRunning = true }, Cmd.ofEffect whenGameExit
+    | Stop -> { state with isGameRunning = false }, Cmd.none
+    | Test ->
+        printfn $"{state.isGameRunning}"
+        state, Cmd.none
 
 let view (state: State) (dispatch: Msg -> unit) =
     WrapPanel.create
-        [ WrapPanel.margin (0, 32, 0, 0)
-          WrapPanel.children [ Button.create [ Button.content "Start"; Button.onClick (fun _ -> Start |> dispatch) ] ] ]
+        [ WrapPanel.children [
+              Button.create [ Button.content "Start"; Button.onClick (fun _ -> Start |> dispatch) ]
+              Button.create [ Button.content "Test"; Button.onClick (fun _ -> Test |> dispatch) ]
+          ] ]
 
-let init () = { isGameRunning = false }
+let init () =
+    { isGameRunning = false
+      inUseBottle = None }, Cmd.none
 
 type MainWindow() as this =
     inherit HostWindow()
@@ -41,10 +51,12 @@ type MainWindow() as this =
     do
         base.Title <- "Visual Novel Reader Plus"
         base.Width <- 400
-        base.ExtendClientAreaToDecorationsHint <- true
+        // ExtendClientAreaToDecorationsHint with margin (0, 32, 0, 0)
 
         this.Closing.Add(fun e ->
             e.Cancel <- true
             this.Hide())
-
-        Elmish.Program.mkSimple init update view |> Program.withHost this |> Program.run
+        
+        Elmish.Program.mkProgram init update view
+        |> Program.withHost this
+        |> Program.run

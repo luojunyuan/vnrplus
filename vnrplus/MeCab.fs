@@ -63,14 +63,14 @@ let generateWords text =
     tagger.ParseToNodes text
     |> Seq.filter (fun n -> n.CharType > 0u)
     |> Seq.map (fun n ->
-        let hinshi = (defaultArg (GetPos1 n) "") |> toHinshi
+        let hinshi = GetPos1 n |> Option.defaultValue "" |> toHinshi
 
         { Word = n.Surface
           Kana =
-            match (defaultArg (GetGoshu n) "") with
-            | "外" -> Array.last ((defaultArg (GetLemma n) " ").Split '-')
+            match (GetGoshu n |> Option.defaultValue  "") with
+            | "外" -> Array.last ((GetLemma n |> Option.defaultValue " ").Split '-')
             | _ ->
                 match not (WanaKana.IsKana n.Surface) && hinshi <> Hinshi.補助記号 with
-                | true -> WanaKana.ToHiragana(defaultArg (GetPron n) "")
+                | true -> WanaKana.ToHiragana(GetPron n |> Option.defaultValue "")
                 | false -> ""
           PartOfSpeech = hinshi })

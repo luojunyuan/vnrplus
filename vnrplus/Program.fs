@@ -5,6 +5,7 @@ open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.Themes.Fluent
 
+
 type App() =
     inherit Application()
 

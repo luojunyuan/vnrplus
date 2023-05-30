@@ -1,5 +1,6 @@
 module Text
 
+open System.Runtime.InteropServices
 open Avalonia
 open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.Hosts
@@ -19,7 +20,6 @@ open System
 open System.Diagnostics
 open System.IO
 
-let pipeFullPath = "/tmp/wine_out"
 let blur = DropShadowEffect()
 blur.Color <- Colors.Black
 blur.Opacity <- 0.5
@@ -67,41 +67,7 @@ let LineBreakerSubscript (dispatch: Msg -> unit) =
     |> ignore
 
 let StartListenPipe (dispatch: Msg -> unit) =
-    let mutable offset = 0L
-
-    let dataReceivedCallback () =
-        // Only recognize the event as a trigger
-        use fileStream = File.OpenRead pipeFullPath
-
-        if (offset > fileStream.Length) then
-            offset <- fileStream.Length
-
-        lock fileStream (fun _ ->
-            fileStream.Position <- offset
-            use streamReader = new StreamReader(fileStream)
-            let content = streamReader.ReadToEnd()
-
-            if content <> "" then
-                content
-                |> fun c -> c.Split("\r\n", StringSplitOptions.RemoveEmptyEntries)
-                |> Seq.iter (fun hookParam ->
-                    Dispatcher.UIThread.Invoke(fun () -> dispatch (ReceiveHookParameter hookParam)))
-
-            offset <- streamReader.BaseStream.Position)
-
-    Process.GetProcessesByName("fswatch") |> Array.iter (fun p -> p.Kill())
-
-    if (not (File.Exists(Path.Combine(AppContext.BaseDirectory, "fswatch")))) then
-        failwith "fswatch not found"
-
-    let startInfo = ProcessStartInfo()
-    startInfo.FileName <- "fswatch"
-    startInfo.Arguments <- pipeFullPath
-    startInfo.RedirectStandardOutput <- true
-    startInfo.UseShellExecute <- false
-    let fswatch = Process.Start startInfo
-    fswatch.OutputDataReceived.Add(fun _ -> dataReceivedCallback ())
-    fswatch.BeginOutputReadLine()
+    let fswatch = Tool.startFswatch
     fswatch
 
 let update (msg: Msg) (state: State) : State =
@@ -219,9 +185,8 @@ type TextWindow(path: string) as this =
         base.Padding <- Thickness(0, 4, 0, 0)
         base.Background <- setBackgroundTheme 0.4 Styling.ThemeVariant.Default
         base.TransparencyLevelHint <- WindowTransparencyLevel.Transparent
-#if WINDOWS
-        SystemEvents.UserPreferenceChanged.Add(fun e -> printfn $"{e.Category}")
-#endif
+        if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
+            SystemEvents.UserPreferenceChanged.Add(fun e -> printfn $"{e.Category}")
 
         this.PointerPressed.Add(fun e ->
             if e.GetCurrentPoint(this).Properties.IsLeftButtonPressed then
