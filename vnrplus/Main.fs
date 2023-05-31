@@ -7,6 +7,7 @@ open Avalonia.Threading
 open Elmish
 open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI
+open Common
 
 type State =
     { isGameRunning: bool
@@ -20,14 +21,16 @@ type Msg =
 let update (msg: Msg) (state: State) : State * Cmd<Msg> =
     match msg with
     | Start ->
-        let game = Tool.startGameWithCxpipe (string state.inUseBottle) "path/to/game"
+        let game = Tool.startGameWithCxpipe (state.inUseBottle |> defaultEmpty) "/Users/kimika/Downloads/seifuku/ぜったい征服☆学園結社パニャニャンダー!!.exe"
         let fswatch = Tool.startFswatch()
+        let d = Types.hookParamEvent.Event.Subscribe(fun a -> printfn $"{a.index} {a.text}")
         let whenGameExit dispatch =
             game.Exited.Add(fun _ ->
                 (fun _ -> Stop |> dispatch) |> Dispatcher.UIThread.Invoke
+                d.Dispose()
                 fswatch.Kill()
                 printfn "GameExited")
-        Common.retrieveMainWindow().Hide()
+        Tool.retrieveMainWindow().Hide()
         { state with isGameRunning = true }, Cmd.ofEffect whenGameExit
     | Stop -> { state with isGameRunning = false }, Cmd.none
     | Test ->
@@ -43,7 +46,7 @@ let view (state: State) (dispatch: Msg -> unit) =
 
 let init () =
     { isGameRunning = false
-      inUseBottle = None }, Cmd.none
+      inUseBottle = Some "new" }, Cmd.none
 
 type MainWindow() as this =
     inherit HostWindow()

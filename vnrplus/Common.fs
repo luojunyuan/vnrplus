@@ -7,14 +7,12 @@ open Avalonia.Controls.ApplicationLifetimes
 let inline dispose (x: IDisposable) = x.Dispose()
 
 let TrayIcon = Path.Combine(AppContext.BaseDirectory, "Assets/TrayIcon.ico")
-let TmpStartScript = Path.Combine(AppContext.BaseDirectory, "tmp_start.sh")
+let RunGameScript = Path.Combine(AppContext.BaseDirectory, "run_game.sh")
 let FswatchPath = Path.Combine(AppContext.BaseDirectory, "fswatch")
+let CxpipePath = Path.Combine(AppContext.BaseDirectory, "cxpipe.exe")
 
-let pipeFullPath = "/tmp/wine_out"
+let PipeFullPath = "/tmp/wine_out"
 
-let retrieveMainWindow() =
-    match Avalonia.Application.Current.ApplicationLifetime with
-    | :? IClassicDesktopStyleApplicationLifetime as desktop -> desktop.MainWindow
-    | _ -> failwith "Unable to retrieve main window"
-    
 let Split symbol (text: string) = text.Split symbol
+
+let defaultEmpty = Option.defaultValue ""

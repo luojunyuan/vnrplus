@@ -35,4 +35,23 @@
         <ProjectReference Include="..\Avalonia.ReactiveUI\Avalonia.ReactiveUI.csproj" />
     </ItemGroup>
 
+    <Target Name="PostBuild" Condition=" '$(OS)' == 'Unix' " AfterTargets="PostBuildEvent">
+        <!-- <Exec Command="cp run_game.sh $(OutDir)run_game.sh" /> -->
+        <Copy SourceFiles="run_game.sh" DestinationFiles="$(OutDir)run_game.sh" />
+        <Copy SourceFiles="libs\win-x64\texthost.dll" DestinationFiles="$(OutDir)libs\texthost.dll" />
+        <Copy SourceFiles="libs\win-x64\texthook.dll" DestinationFiles="$(OutDir)libs\x64\texthook.dll" />
+        <Copy SourceFiles="libs\win-x64\injector.exe" DestinationFiles="$(OutDir)libs\x64\injector.exe" />
+        <Copy SourceFiles="libs\win-x86\texthook.dll" DestinationFiles="$(OutDir)libs\x86\texthook.dll" />
+        <Copy SourceFiles="libs\win-x86\injector.exe" DestinationFiles="$(OutDir)libs\x86\injector.exe" />
+        <Copy SourceFiles="libs\osx-arm64\fswatch" DestinationFiles="$(OutDir)fswatch" />
+        <MakeDir Directories="$(PublishDir)" />
+        <Copy SourceFiles="run_game.sh" DestinationFiles="$(PublishDir)\run_game.sh" />
+        <Copy SourceFiles="libs\win-x64\texthost.dll" DestinationFiles="$(PublishDir)\libs\texthost.dll" />
+        <Copy SourceFiles="libs\win-x64\texthook.dll" DestinationFiles="$(PublishDir)\libs\x64\texthook.dll" />
+        <Copy SourceFiles="libs\win-x64\injector.exe" DestinationFiles="$(PublishDir)\libs\x64\injector.exe" />
+        <Copy SourceFiles="libs\win-x86\texthook.dll" DestinationFiles="$(PublishDir)\libs\x86\texthook.dll" />
+        <Copy SourceFiles="libs\win-x86\injector.exe" DestinationFiles="$(PublishDir)\libs\x86\injector.exe" />
+        <Copy SourceFiles="libs\osx-arm64\fswatch" DestinationFiles="$(PublishDir)\fswatch" />
+    </Target>
+
 </Project>

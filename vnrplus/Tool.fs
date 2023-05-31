@@ -3,12 +3,14 @@ module Tool
 open System
 open System.Diagnostics
 open System.IO
+open Avalonia.Controls.ApplicationLifetimes
 
-let startGameWithCxpipe bottleName gamePath =
+let startGameWithCxpipe bottleName (gamePath: string) =
     // /Users/username/Library/Application\ Support/CrossOver/Bottles
+    let gameName = Path.GetFileNameWithoutExtension gamePath
     let processInfo = ProcessStartInfo()
     processInfo.FileName <- "/bin/bash"
-    processInfo.Arguments <- Common.TmpStartScript + " " + bottleName + " " + gamePath
+    processInfo.Arguments <- Common.RunGameScript + " " + bottleName + " " + gamePath + " " + gameName + " " + Common.CxpipePath
     processInfo.UseShellExecute <- false
     processInfo.RedirectStandardOutput <- true
     processInfo.CreateNoWindow <- true
@@ -32,7 +34,7 @@ let startFswatch () =
     let mutable offset = 0L
     let dataChangeFiredCallback () =
         // Only recognize the event as a trigger
-        use fileStream = File.OpenRead Common.pipeFullPath
+        use fileStream = File.OpenRead Common.PipeFullPath
 
         if (offset > fileStream.Length) then
             offset <- fileStream.Length
@@ -61,7 +63,7 @@ let startFswatch () =
 
     let startInfo = ProcessStartInfo()
     startInfo.FileName <- "fswatch"
-    startInfo.Arguments <- Common.pipeFullPath
+    startInfo.Arguments <- Common.PipeFullPath
     startInfo.RedirectStandardOutput <- true
     startInfo.UseShellExecute <- false
     let fswatch = Process.Start startInfo
@@ -69,3 +71,9 @@ let startFswatch () =
     fswatch.BeginOutputReadLine()
     fswatch
  
+ 
+let retrieveMainWindow() =
+    match Avalonia.Application.Current.ApplicationLifetime with
+    | :? IClassicDesktopStyleApplicationLifetime as desktop -> desktop.MainWindow
+    | _ -> failwith "Unable to retrieve main window"
+    
