@@ -1,5 +1,6 @@
 module Text
 
+open Elmish
 open System.Runtime.InteropServices
 open Avalonia
 open Avalonia.FuncUI.Builder
@@ -12,9 +13,8 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Threading
-open Elmish
 open FSharp.Control.Reactive
-open MeCab
+open HookParam
 open Microsoft.Win32
 open System
 open System.Diagnostics
@@ -32,10 +32,10 @@ type State =
       kanaEnable: bool
       mecabWords: MeCab.MeCabWord list }
 
-let init (path: string) =
+let init () =
     printfn "init"
 
-    { text = path
+    { text = "init"
       threadId = 0
       listenButtonEnabled = true
       kanaEnable = false
@@ -43,7 +43,7 @@ let init (path: string) =
 
 type Msg =
     | ChangeThreadId of string
-    | ReceiveHookParameter of string
+    | ReceiveHookParameter of HookParam.HookParameter
     | DisableButton
     | ChangeTextBlock of bool
     | UpdateText of MeCab.MeCabWord list
@@ -52,6 +52,7 @@ type Msg =
 let mutable currentText = ""
 let mutable tmp = false
 let lineBreaker = Subject.broadcast
+let tagger = MeCab.createTagger()
 
 let LineBreakerSubscript (dispatch: Msg -> unit) =
     lineBreaker
@@ -60,15 +61,11 @@ let LineBreakerSubscript (dispatch: Msg -> unit) =
     |> Observable.subscribe (fun () ->
         // currentText.length
         // Start mecab text
-        let mecabWords = MeCab.generateWords currentText |> Seq.toList
+        let mecabWords = MeCab.generateWords tagger currentText |> Seq.toList
         dispatch (UpdateText mecabWords)
         dispatch (ChangeTextBlock true)
         tmp <- true) // Should dispatch with message
     |> ignore
-
-let StartListenPipe (dispatch: Msg -> unit) =
-    let fswatch = Tool.startFswatch
-    fswatch
 
 let update (msg: Msg) (state: State) : State =
     match msg with
@@ -76,29 +73,27 @@ let update (msg: Msg) (state: State) : State =
         match Int32.TryParse text with
         | true, i -> { state with threadId = i }
         | _ -> state
-    | ReceiveHookParameter hookParam ->
-        let split = hookParam.Split '☭'
-        printfn $"{split[0]}"
+    | ReceiveHookParameter hp ->
 
         if (state.threadId = 0) then
             { state with
-                text = state.text + " " + split[0] }
-        else if (split[0] = string state.threadId) then
+                text = state.text + " " + hp.text }
+        else if (hp.index = state.threadId) then
             lineBreaker.OnNext()
             // if(split[1] = "␍") then printfn "line break"
             if (tmp = true) then
                 // new text start
-                currentText <- split[1]
+                currentText <- hp.text
                 tmp <- false
 
                 { state with
-                    text = split[1]
+                    text = hp.text
                     kanaEnable = false }
             else
-                currentText <- state.text + split[1]
+                currentText <- state.text + hp.text
 
                 { state with
-                    text = state.text + split[1] }
+                    text = state.text + hp.text }
         else
             state
     | DisableButton ->
@@ -111,7 +106,7 @@ let update (msg: Msg) (state: State) : State =
             mecabWords =
                 [ { Word = "草"
                     Kana = "くさ"
-                    PartOfSpeech = Hinshi.代名詞 } ]
+                    PartOfSpeech = MeCab.Hinshi.代名詞 } ]
                 @ state.mecabWords }
 
 let view (state: State) (dispatch: Msg -> unit) =
@@ -126,7 +121,6 @@ let view (state: State) (dispatch: Msg -> unit) =
                                   TextBox.onTextChanged (fun text -> text |> ChangeThreadId |> dispatch) ]
                             Button.create
                                 [ Button.onClick (fun _ ->
-                                      StartListenPipe dispatch |> ignore //cxpipe proc
                                       DisableButton |> dispatch 
                                       LineBreakerSubscript dispatch)
                                   Button.content "Start"
@@ -168,10 +162,9 @@ let view (state: State) (dispatch: Msg -> unit) =
 let setBackgroundTheme opacity theme =
     if theme = Styling.ThemeVariant.Light then
         SolidColorBrush(Colors.Black, opacity)
-    else
-        SolidColorBrush(Colors.White, opacity)
+    else SolidColorBrush(Colors.White, opacity)
 
-type TextWindow(path: string) as this =
+type TextWindow(hpEvent: HookParamEvent) as this =
     inherit HostWindow()
 
     do
@@ -184,14 +177,22 @@ type TextWindow(path: string) as this =
         base.ExtendClientAreaChromeHints <- ExtendClientAreaChromeHints.NoChrome
         base.Padding <- Thickness(0, 4, 0, 0)
         base.Background <- setBackgroundTheme 0.4 Styling.ThemeVariant.Default
+        // base.TransparencyLevelHint <- [| WindowTransparencyLevel.Transparent |]
         base.TransparencyLevelHint <- WindowTransparencyLevel.Transparent
         if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
             SystemEvents.UserPreferenceChanged.Add(fun e -> printfn $"{e.Category}")
+            
+        this.PointerPressed
+        |> Event.filter ( fun e -> e.GetCurrentPoint(this).Properties.IsLeftButtonPressed )
+        |> Event.add (fun e -> e |> this.BeginMoveDrag)
 
-        this.PointerPressed.Add(fun e ->
-            if e.GetCurrentPoint(this).Properties.IsLeftButtonPressed then
-                e |> this.BeginMoveDrag)
-
-        Elmish.Program.mkSimple (fun () -> init path) update view
+        let subscriptions _state =
+            let onHookParam _dispatch =
+                hpEvent.Event.Subscribe(fun a -> printfn $"{a.index} {a.text}")
+                
+            [ [nameof onHookParam], onHookParam ]
+        
+        Elmish.Program.mkSimple init update view
         |> Program.withHost this
+        |> Program.withSubscription subscriptions
         |> Program.run

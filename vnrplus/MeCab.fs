@@ -5,19 +5,13 @@ open MeCab.Extension.UniDic
 open WanaKanaNet
 open System
 
-let Get func node : string option =
-    let v = func node
-    if String.IsNullOrEmpty v then None else Some v
+let GetPos1 node = node |> UniDicFeatureExtension.GetPos1 |> Common.optionStr
 
-let GetPos1 node = Get UniDicFeatureExtension.GetPos1 node
+let GetGoshu node = node |> UniDicFeatureExtension.GetGoshu |> Common.optionStr
 
-let GetGoshu node =
-    Get UniDicFeatureExtension.GetGoshu node
+let GetLemma node = node |> UniDicFeatureExtension.GetLemma |> Common.optionStr
 
-let GetLemma node =
-    Get UniDicFeatureExtension.GetLemma node
-
-let GetPron node = Get UniDicFeatureExtension.GetPron node
+let GetPron node = node |> UniDicFeatureExtension.GetPron |> Common.optionStr
 
 type Hinshi =
     | 未定だ
@@ -55,22 +49,29 @@ type MeCabWord =
       Kana: string
       PartOfSpeech: Hinshi }
 
-let parameter = MeCabParam()
-parameter.DicDir <- System.IO.Path.Combine(AppContext.BaseDirectory, "UniDic")
-let tagger = MeCabTagger.Create parameter
+let createTagger ()=
+    let parameter = MeCabParam()
+    parameter.DicDir <- Common.unidicDir
+    MeCabTagger.Create parameter
 
-let generateWords text =
-    tagger.ParseToNodes text
-    |> Seq.filter (fun n -> n.CharType > 0u)
+let private isCharType (node: MeCabNode) = node.CharType > 0u
+
+let generateWords (tagger: MeCabTagger) text =
+    text
+    |> tagger.ParseToNodes 
+    |> Seq.filter isCharType
     |> Seq.map (fun n ->
-        let hinshi = GetPos1 n |> Option.defaultValue "" |> toHinshi
-
+        let hinshi = n |> GetPos1 |> Option.defaultValue "" |> toHinshi // 品詞
+        let goshu = n |> GetGoshu |> Option.defaultValue "" // 語種
+        let lemma = n |> GetLemma |> Option.defaultValue " " // should never be Option
+        let isKanji = not (n.Surface |> WanaKana.IsKana)
+        
         { Word = n.Surface
           Kana =
-            match (GetGoshu n |> Option.defaultValue  "") with
-            | "外" -> Array.last ((GetLemma n |> Option.defaultValue " ").Split '-')
+            match goshu with
+            | "外" -> lemma |> Common.split "-" |> Array.last
             | _ ->
-                match not (WanaKana.IsKana n.Surface) && hinshi <> Hinshi.補助記号 with
+                match isKanji && hinshi <> Hinshi.補助記号 with
                 | true -> WanaKana.ToHiragana(GetPron n |> Option.defaultValue "")
                 | false -> ""
           PartOfSpeech = hinshi })

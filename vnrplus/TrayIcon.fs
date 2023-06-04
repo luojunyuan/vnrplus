@@ -1,9 +1,9 @@
-module VnrpTrayIcon
+module VNRP.TrayIcon
 
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 
-let startTrayIcon (mainWindow: Window) (desktopLifetime: IClassicDesktopStyleApplicationLifetime) =
+let start (mainWindow: Window) (desktopLifetime: IClassicDesktopStyleApplicationLifetime) =
     let trayContextMenu = NativeMenu()
     let mainMenuItem = NativeMenuItem()
     mainMenuItem.Header <- "Main"
@@ -20,7 +20,7 @@ let startTrayIcon (mainWindow: Window) (desktopLifetime: IClassicDesktopStyleApp
 
     // Show TrayIcon
     let trayIcon = new TrayIcon()
-    trayIcon.Icon <- WindowIcon Common.TrayIcon
+    trayIcon.Icon <- WindowIcon Common.trayIconPath
     trayIcon.Menu <- trayContextMenu
     trayIcon.IsVisible <- true
 

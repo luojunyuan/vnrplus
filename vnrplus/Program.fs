@@ -5,7 +5,6 @@ open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.Themes.Fluent
 
-
 type App() =
     inherit Application()
 
@@ -17,15 +16,13 @@ type App() =
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
         | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
-            let mainWindow = Main.MainWindow()
-            VnrpTrayIcon.startTrayIcon mainWindow desktopLifetime
-
             desktopLifetime.ShutdownMode <- ShutdownMode.OnExplicitShutdown
-
             desktopLifetime.MainWindow <-
                 match desktopLifetime.Args |> Array.tryHead with
-                | Some path -> Text.TextWindow path :> Window
-                | _ -> mainWindow
+                | Some path -> Main.MainWindow(Some path)
+                | _ -> Main.MainWindow(None)
+                
+            do VNRP.TrayIcon.start desktopLifetime.MainWindow desktopLifetime
         | _ -> ()
 
 [<EntryPoint>]
