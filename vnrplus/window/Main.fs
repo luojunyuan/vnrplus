@@ -22,10 +22,10 @@ type Msg =
 
 module Commands =
     let startGame bottle game =
-        let hpEvent = HookParam.HookParamEvent()
+        let hpEvent = TextHost.hptmp
         let game, fswatch =
             match RuntimeInformation.IsOSPlatform(OSPlatform.Windows) with
-            | true -> Impure.startGameByPath hpEvent game, None
+            | true -> Impure.startGameByPath game, None
             | false ->
                 let fswatch = Impure.startFswatch(hpEvent.TriggerEvent)
                 let game = Impure.startGameWithCxpipe bottle game
@@ -61,6 +61,7 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
         Commands.startGame (state.inUseBottle |> defaultEmpty) path
     | Stop -> { state with isGameRunning = false }, Cmd.none
     | Test ->
+        HostWindow().Show()
         printfn $"{state.isGameRunning}"
         state, Cmd.none
 
@@ -71,24 +72,26 @@ let view (state: State) (dispatch: Msg -> unit) =
                 TextBlock.horizontalAlignment HorizontalAlignment.Center
                 TextBlock.text ("Game in running: " + string state.isGameRunning)
             ]
-            TextBlock.create [
-                TextBlock.horizontalAlignment HorizontalAlignment.Center
-                TextBlock.text ("Current in using bottle: " + (state.inUseBottle |> defaultEmpty |> wrapWith "\""))
-            ]
+            //TextBlock.create [
+            //    TextBlock.horizontalAlignment HorizontalAlignment.Center
+            //    TextBlock.text ("Current in using bottle: " + (state.inUseBottle |> defaultEmpty |> wrapWith "\""))
+            //]
             WrapPanel.create [
                 WrapPanel.children [
                     Button.create [
                         Button.content "Start"
-                        Button.onClick (fun _ -> "/Users/kimika/Downloads/seifuku/ぜったい征服☆学園結社パニャニャンダー!!.exe" |> Start |> dispatch) ]
+                        //Button.onClick (fun _ -> "/Users/kimika/Downloads/seifuku/ぜったい征服☆学園結社パニャニャンダー!!.exe" |> Start |> dispatch) ]
+                        Button.onClick (fun _ -> """C:\\SCORE\\kureyon\\CT.exe""" |> Start |> dispatch) ]
                     Button.create [
                         Button.content "Test"
                         Button.onClick (fun _ -> Test |> dispatch) ]]]]]
     
 let init () =
-    let bottles = Impure.getBottles()
+    //let bottles = Impure.getBottles()
     
     { isGameRunning = false
-      inUseBottle = bottles |> Array.tryHead |> defaultEmpty |> Path.GetFileName |> optionStr }, Cmd.none
+      // inUseBottle = bottles |> Array.tryHead |> defaultEmpty |> Path.GetFileName |> optionStr }, Cmd.none
+      inUseBottle = None }, Cmd.none
 
 type MainWindow(gamePath) as this =
     inherit HostWindow()

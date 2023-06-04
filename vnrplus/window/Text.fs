@@ -33,7 +33,7 @@ type State =
       mecabWords: MeCab.MeCabWord list }
 
 let init () =
-    printfn "init"
+    printfn "Text init"
 
     { text = "init"
       threadId = 0
@@ -145,8 +145,8 @@ let view (state: State) (dispatch: Msg -> unit) =
                       TextBlock.padding (0, 14, 0, 0) //  should equal ruby size
                       TextBlock.isVisible (not state.kanaEnable)
                       TextBlock.lineHeight 42 // also effect by ruby size
-                      AttrBuilder<TextBlock>
-                          .CreateProperty<IEffect>(TextBlock.EffectProperty, blur, ValueNone) ]
+                      AttrBuilder<TextBlock>.CreateProperty<IEffect>(TextBlock.EffectProperty, blur, ValueNone) 
+                    ]
 
                 WrapPanel.create
                     [ WrapPanel.dock Dock.Top
@@ -156,8 +156,8 @@ let view (state: State) (dispatch: Msg -> unit) =
                       WrapPanel.children
                           [ for moji in state.mecabWords do
                                 Ruby.Word moji.Kana moji.Word ]
-                      AttrBuilder<WrapPanel>
-                          .CreateProperty<IEffect>(TextBlock.EffectProperty, blur, ValueNone) ] ] ]
+                      AttrBuilder<WrapPanel>.CreateProperty<IEffect>(TextBlock.EffectProperty, blur, ValueNone)
+                    ] ] ]
 
 let setBackgroundTheme opacity theme =
     if theme = Styling.ThemeVariant.Light then

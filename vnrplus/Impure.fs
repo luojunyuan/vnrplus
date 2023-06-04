@@ -6,11 +6,14 @@ open System.IO
 open Avalonia.Controls.ApplicationLifetimes
 open Common
 
-let startGameByPath hpEvt (gamePath: string) : Process =
+let startGameByPath (gamePath: string) : Process =
     let proc = Process.Start gamePath
+    proc.EnableRaisingEvents <- true
     proc.WaitForInputIdle() |> ignore
-    TextHost.inject (Some hpEvt) (Process.GetProcesses proc.MachineName)
-    proc
+    let processes = Process.GetProcessesByName "CT"
+    TextHost.inject processes
+    processes[0].EnableRaisingEvents <- true
+    processes[0]
 
 let startGameWithCxpipe bottleName (gamePath: string) =
     let gameName = Path.GetFileNameWithoutExtension gamePath

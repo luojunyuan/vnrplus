@@ -1,39 +1,25 @@
 // Windows only
 module TextHost
 
-
 open System.Collections.Generic
-open System.Diagnostics
 open System.Runtime.InteropServices
+open System.Diagnostics
 
-[<Literal>]
+[<Literal>] 
 let TextHostRelativePath = "libs/texthost.dll"
 
 type ProcessCallback = delegate of uint -> unit
-
 type OnCreateThread =
-    delegate of
-        int64 *
-        uint *
-        int64 *
-        int64 *
-        int64 *
+    delegate of int64 * uint * int64 * int64 * int64 *
         [<MarshalAs(UnmanagedType.LPWStr)>] name: string *
-        [<MarshalAs(UnmanagedType.LPWStr)>] hcode: string ->
-            unit
-
+        [<MarshalAs(UnmanagedType.LPWStr)>] hcode: string -> unit
 type OnRemoveThread = delegate of int64 -> unit
-type OnOutputText = delegate of int64 * [<MarshalAs(UnmanagedType.LPWStr)>] text: string * uint -> unit
+type OnOutputText =
+    delegate of int64 * [<MarshalAs(UnmanagedType.LPWStr)>] text : string * uint -> unit
 
 
 [<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
-extern bool TextHostInit(
-    ProcessCallback onConnect,
-    ProcessCallback onDisconnect,
-    OnCreateThread onCreateThread,
-    OnRemoveThread onRemoveThread,
-    OnOutputText onOutputText
-)
+extern bool TextHostInit(ProcessCallback onConnect, ProcessCallback onDisconnect, OnCreateThread onCreateThread, OnRemoveThread onRemoveThread, OnOutputText onOutputText)
 
 [<DllImport(TextHostRelativePath, CharSet = CharSet.Auto, SetLastError = true)>]
 extern void InsertHook(uint processId, string hookCode)
@@ -58,8 +44,8 @@ extern void UpdateFlushTimeout(uint timeout)
 
 
 // [Handle:ProcessId:Address :Context :Context2:Name(Engine):HookCode :Text]
-// [19    :272C     :769550C0:2C78938 :0       :TextOutA    :HS10@0:gdi32.dll:TextOutA:] 俺は…………。
-// [2     :2FF0     :75766C70:74CFE309:0       :            :HB0@0:いちゃぷり！.exe     :] ActiveMovie WindowActiveMovie Window"
+// [19    :272C     :769550C0:2C78938 :0       :TextOutA    :HS10@0:gdi32.dll:TextOutA:] ���́c�c�c�c�B
+// [2     :2FF0     :75766C70:74CFE309:0       :            :HB0@0:������Ղ�I.exe     :] ActiveMovie WindowActiveMovie Window"
 type HookParam =
     { Handle: int64
       ProcessId: uint
@@ -68,21 +54,13 @@ type HookParam =
       Context2: int64
       Name: string
       HookCode: string }
-    
+
+let textThreadDict = Dictionary<int64, HookParam>()
+let hptmp = HookParam.HookParamEvent()
+
 let onConnect (processId: uint) : unit = ()
 let onDisconnect (processId: uint) : unit = ()
-let onRemoveThread (threadId: int64) : unit = ()
-let textThreadDict = Dictionary<int64, HookParam>()
-
-let onCreateThread
-    (threadId: int64)
-    (processId: uint)
-    (address: int64)
-    (context: int64)
-    (subContext: int64)
-    (name: string)
-    (hookcode: string)
-    : unit =
+let onCreateThread (threadId: int64) (processId: uint) (address: int64) (context: int64) (subContext: int64) (name: string) (hookcode: string) : unit =
     textThreadDict.Add(
         threadId,
         { Handle = threadId
@@ -93,19 +71,26 @@ let onCreateThread
           Name = name
           HookCode = hookcode }
     )
-
-let mutable private tmpHP:HookParam.HookParamEvent Option = None
-let onOutputText (threadId: int64) (text: string) (length: uint) =
-    tmpHP.Value.TriggerEvent(
+let onRemoveThread (threadId: int64) : unit = ()
+let onOutputText (threadId: int64) (text: string) (len: uint) =
+    hptmp.TriggerEvent(
         { HookParam.index = int threadId
           HookParam.text = text })
 
-let inject hpEvent (processes: Process array) =
-    tmpHP <- hpEvent
+let mutable onConnectDelegate = Unchecked.defaultof<ProcessCallback>
+let mutable onDisconnectDelegate = Unchecked.defaultof<ProcessCallback>
+let mutable onCreateThreadDelegate = Unchecked.defaultof<OnCreateThread>
+let mutable onRemoveThreadDelegate = Unchecked.defaultof<OnRemoveThread>
+let mutable onOutputTextDelegate = Unchecked.defaultof<OnOutputText>
+
+let inject (processes: Process array) =
+    onConnectDelegate <- onConnect
+    onDisconnectDelegate <- onDisconnect
+    onCreateThreadDelegate <- onCreateThread
+    onRemoveThreadDelegate <- onRemoveThread
+    onOutputTextDelegate <- onOutputText
     
-    TextHostInit(onConnect, onDisconnect, onCreateThread, onRemoveThread, onOutputText) |> ignore
-
+    TextHostInit(onConnectDelegate, onDisconnectDelegate, onCreateThreadDelegate, onRemoveThreadDelegate, onOutputTextDelegate) |> ignore
     UpdateFlushTimeout(uint 0)
-
     for proc in processes do
         InjectProcess(uint proc.Id)

@@ -3,6 +3,7 @@ module Common
 open System
 open System.Diagnostics.Contracts
 open System.IO
+open System.Runtime.InteropServices
 
 let inline dispose (x: IDisposable) = x.Dispose()
 let split (symbol: string) (text: string) = text.Split(symbol, StringSplitOptions.RemoveEmptyEntries)
@@ -19,6 +20,6 @@ let unidicDir = Path.Combine(AppContext.BaseDirectory, "UniDic/")
 let usrdicPath = Path.GetRelativePath(unidicDir, "path/to/user_dic")
 
 // Process.Start would dami if the file not exist. So I check it explicitly
-if (not (fswatchToolPath |> File.Exists)) then
+if RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && (not (fswatchToolPath |> File.Exists)) then
     failwith "fswatch not found"
     
