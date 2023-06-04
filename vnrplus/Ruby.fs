@@ -10,7 +10,7 @@ let Word ruby text =
         [ StackPanel.children
               [ TextBlock.create
                     [ TextBlock.text ruby
-                      TextBlock.fontSize 13 // -1 あまり意味ないと思うが。。
+                      TextBlock.fontSize 14
                       TextBlock.horizontalAlignment HorizontalAlignment.Center
                       TextBlock.clipToBounds false ]
                 Border.create

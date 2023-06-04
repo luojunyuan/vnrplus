@@ -142,9 +142,9 @@ let view (state: State) (dispatch: Msg -> unit) =
                       TextBlock.horizontalAlignment HorizontalAlignment.Left
                       TextBlock.text state.text
                       TextBlock.textWrapping TextWrapping.Wrap
-                      TextBlock.padding (0, 13, 0, 0) //  should equal ruby size
+                      TextBlock.padding (0, 14, 0, 0) //  should equal ruby size
                       TextBlock.isVisible (not state.kanaEnable)
-                      TextBlock.lineHeight 41 // also effect by ruby size
+                      TextBlock.lineHeight 42 // also effect by ruby size
                       AttrBuilder<TextBlock>
                           .CreateProperty<IEffect>(TextBlock.EffectProperty, blur, ValueNone) ]
 
@@ -187,8 +187,10 @@ type TextWindow(hpEvent: HookParamEvent) as this =
         |> Event.add (fun e -> e |> this.BeginMoveDrag)
 
         let subscriptions _state =
-            let onHookParam _dispatch =
-                hpEvent.Event.Subscribe(fun a -> printfn $"{a.index} {a.text}")
+            let onHookParam (dispatch: Msg->unit) =
+                hpEvent.Event.Subscribe(fun a ->
+                    (fun _ -> a |> ReceiveHookParameter |> dispatch) |> Dispatcher.UIThread.Invoke
+                    printfn $"{a.index} {a.text}")
                 
             [ [nameof onHookParam], onHookParam ]
         
