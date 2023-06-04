@@ -13,6 +13,7 @@
         </Content>
         <Compile Include="Common.fs" />
         <Compile Include="HookParam.fs" />
+        <Compile Include="TextHost.fs" />
         <Compile Include="Impure.fs" />
         <Compile Include="MeCab.fs" />
         <Compile Include="Ruby.fs" />

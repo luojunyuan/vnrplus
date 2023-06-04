@@ -1,6 +1,7 @@
 module Main
 
 open System.IO
+open System.Runtime.InteropServices
 open Avalonia.Layout
 open Elmish
 open Avalonia.Controls
@@ -21,10 +22,16 @@ type Msg =
 
 module Commands =
     let startGame bottle game =
-        let game = Impure.startGameWithCxpipe bottle game
         let hpEvent = HookParam.HookParamEvent()
-        let fswatch = Impure.startFswatch(hpEvent.TriggerEvent)
+        let game, fswatch =
+            match RuntimeInformation.IsOSPlatform(OSPlatform.Windows) with
+            | true -> Impure.startGameByPath hpEvent game, None
+            | false ->
+                let fswatch = Impure.startFswatch(hpEvent.TriggerEvent)
+                let game = Impure.startGameWithCxpipe bottle game
+                game, Some fswatch
         do Impure.retrieveMainWindow().Hide()
+        
         let textWindow =
             match true with
             | true ->
@@ -37,7 +44,9 @@ module Commands =
             async {
                 let! _ = Async.AwaitEvent game.Exited
                 (fun _ -> Stop |> dispatch) |> Dispatcher.UIThread.Invoke
-                fswatch.Kill()
+                match fswatch with
+                | Some n -> n.Kill()
+                | None -> ()
                 match textWindow with
                 | Some w -> w.Close()
                 | None -> ()
